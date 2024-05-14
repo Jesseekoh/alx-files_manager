@@ -86,7 +86,6 @@ export default class FilesController {
 
     const insertionInfo = await dbClient.client.db().collection('files').insertOne(newFile);
     const fileId = insertionInfo.insertedId.toString();
-    console.log(typeof (userId));
     res.status(201).json({
       id: fileId,
       userId,
