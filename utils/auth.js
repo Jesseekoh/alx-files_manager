@@ -20,7 +20,6 @@ export const getUserFromAuthHeader = async (req) => {
   if (!user || sha1(password) !== user.password) {
     return null;
   }
-  // console.log(user);
   return user;
 };
 
@@ -39,4 +38,11 @@ export const getUserFromXToken = async (req) => {
   }
 
   return null;
+};
+
+export const authenticateUser = (req, res) => {
+  const user = getUserFromAuthHeader(req);
+  if (!user) {
+    res.status(401).json({ error: 'Unauthorized' });
+  }
 };

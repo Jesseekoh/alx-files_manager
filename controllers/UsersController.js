@@ -3,6 +3,12 @@ import dbClient from '../utils/db';
 import { getUserFromXToken } from '../utils/auth';
 
 export default class UsersController {
+  /**
+   * Creates a new user
+   * @param {*} req request object
+   * @param {*} res response object
+   * @returns
+   */
   static async postNew(req, res) {
     const { email, password } = req.body;
     if (!email) {
@@ -27,6 +33,11 @@ export default class UsersController {
     }
   }
 
+  /**
+   * Retrieves a particular user based on token in the request header
+   * @param {*} req
+   * @param {*} res
+   */
   static async getMe(req, res) {
     const user = await getUserFromXToken(req);
 

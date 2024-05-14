@@ -11,8 +11,6 @@ export default class AuthController {
     if (user) {
       const token = uuidv4();
 
-      console.log(token);
-
       await redisClient.set(`auth_${token}`, user._id.toString(), 24 * 60 * 60);
       res.status(200).json({ token });
     } else {
