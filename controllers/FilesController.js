@@ -31,7 +31,7 @@ export default class FilesController {
 
     const name = req.body ? req.body.name : null;
     const type = req.body ? req.body.type : null;
-    const parentId = req.body && req.body.parentId ? req.body.parentId : ROOT_FOLDER_ID;
+    let parentId = req.body && req.body.parentId ? req.body.parentId : ROOT_FOLDER_ID; // Edward
     const isPublic = req.body && req.body.isPublic ? req.body.isPublic : false;
     const data = req.body ? req.body.data : '';
     if (!name) {
@@ -61,14 +61,18 @@ export default class FilesController {
         return null;
       }
     }
+    if (parentId !== 0) {
+      parentId = new mongoDBCore.BSON.ObjectId(parentId); // Edward
+    }
     const userId = user._id.toString();
     const newFile = {
       userId: new mongoDBCore.BSON.ObjectId(userId),
       name,
       type,
       isPublic,
-      parentId: (parentId === ROOT_FOLDER_ID) || (parentId === ROOT_FOLDER_ID.toString()),
+      parentId, // Edward update this
     };
+
     const baseDir = `${process.env.FOLDER_PATH || ''}`.trim().length > 0
       ? process.env.FOLDER_PATH.trim()
       : join(tmpdir(), DEFAULT_ROOT_FOLDER);
