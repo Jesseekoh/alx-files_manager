@@ -2,7 +2,7 @@ import mongoDBCore from 'mongodb/lib/core';
 import { tmpdir } from 'os';
 import { promisify } from 'util';
 import {
-  mkdir, writeFile, stat, existsSync, realpath,
+  mkdir, writeFile,
 } from 'fs';
 import { v4 as uuidv4 } from 'uuid';
 import { join } from 'path';
@@ -18,8 +18,8 @@ const VALID_FILE_TYPES = {
 };
 const mkDirAsync = promisify(mkdir);
 const writeFileAsync = promisify(writeFile);
-const statAsync = promisify(stat);
-const realPathAsync = promisify(realpath);
+// const statAsync = promisify(stat);
+// const realPathAsync = promisify(realpath);
 export default class FilesController {
   static async postUpload(req, res) {
     const user = await getUserFromXToken(req);
@@ -36,29 +36,29 @@ export default class FilesController {
     const data = req.body ? req.body.data : '';
     if (!name) {
       res.status(400).json({ error: 'Missing name' });
-      return;
+      return null;
     }
 
     if (!type || !VALID_FILE_TYPES[type]) {
       res.status(400).json({ error: 'Missing type' });
-      return;
+      return null;
     }
 
-    if (!data && type != VALID_FILE_TYPES.folder) {
+    if (!data && type !== VALID_FILE_TYPES.folder) {
       res.status(400).json({ error: 'Missing' });
-      return;
+      return null;
     }
 
     if (parentId) {
       const file = await dbClient.client.db().collection('files').findOne({ _id: mongoDBCore.BSON.ObjectId(parentId) });
       if (!file) {
         res.status(400).json({ error: 'Parent not found' });
-        return;
+        return null;
       }
 
-      if (file.type != VALID_FILE_TYPES.folder) {
+      if (file.type !== VALID_FILE_TYPES.folder) {
         res.status(400).json({ error: 'Parent is not a folder' });
-        return;
+        return null;
       }
     }
     const userId = user._id.toString();
@@ -93,5 +93,6 @@ export default class FilesController {
         ? 0
         : parentId,
     });
+    return null;
   }
 }
