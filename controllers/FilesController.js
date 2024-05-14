@@ -45,7 +45,7 @@ export default class FilesController {
     }
 
     if (!data && type !== VALID_FILE_TYPES.folder) {
-      res.status(400).json({ error: 'Missing' });
+      res.status(400).json({ error: 'Missing data' });
       return null;
     }
 
