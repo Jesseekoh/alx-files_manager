@@ -110,6 +110,10 @@ export default class FilesController {
 
     const files = await Utils.getDocWithPage(req);
 
+    if (files.length === 0) {
+      return res.status(404).send(files);
+    }
+
     const data = Utils.parseDoc(files);
 
     return res.send(data);

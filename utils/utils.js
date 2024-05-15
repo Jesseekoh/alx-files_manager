@@ -14,16 +14,16 @@ class Utils {
     const page = parseInt(req.query.page, 10) || 0;
     const files = await dbClient.client.db().collection('files');
 
-    const pipline = [];
+    const pipeline = [];
 
     if (parentId) {
-      pipline.push({ $match: { parentId: ObjectId(parentId) } });
+      pipeline.push({ $match: { parentId: ObjectId(parentId) } });
     }
 
-    pipline.push({ $skip: page * 20 });
-    pipline.push({ $limit: 20 });
+    pipeline.push({ $skip: page * 20 });
+    pipeline.push({ $limit: 20 });
 
-    const doc = await files.aggregate(pipline);
+    const doc = await files.aggregate(pipeline);
 
     return doc.toArray();
   }
