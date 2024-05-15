@@ -1,4 +1,5 @@
 import mongoDBCore from 'mongodb/lib/core';
+import { ObjectId } from 'mongodb';
 import { tmpdir } from 'os';
 import { promisify } from 'util';
 import {
@@ -121,13 +122,59 @@ export default class FilesController {
       res.status(401).send('Unauthorized');
     }
 
-    const files = await Utils.getFilesWithUserId(req);
+    const files = await Utils.getFilesWithId(req);
 
     if (files.length === 0) {
       return res.status(404).send('Not found');
     }
 
     const data = Utils.parseDoc(files);
+
+    return res.send(data);
+  }
+
+  static async putPublish(req, res) {
+    const user = await getUserFromXToken(req);
+    const { id } = req.params;
+
+    if (!user) {
+      return res.status(401).send('Unauthorized');
+    }
+
+    const files = await Utils.getFileCollection();
+
+    const update = await files.updateOne({ _id: ObjectId(id) }, { $set: { isPublic: true } });
+
+    if (update.modifiedCount <= 0) {
+      return res.status(404).send('Not found');
+    }
+
+    const doc = await Utils.getFilesWithId(req);
+
+    const data = Utils.parseDoc(doc);
+
+    return res.send(data);
+  }
+
+  static async putUnpublish(req, res) {
+    const user = await getUserFromXToken(req);
+    const { id } = req.params;
+
+    if (!user) {
+      return res.status(401).send('Unauthorized');
+    }
+
+    const files = await Utils.getFileCollection();
+
+    const update = await files.updateOne({ _id: ObjectId(id) }, { $set: { isPublic: false } });
+
+    if (update.modifiedCount <= 0) {
+      return res.status(404).send('Not found');
+    }
+
+    const doc = await Utils.getFilesWithId(req);
+
+    const data = Utils.parseDoc(doc);
 
     return res.send(data);
   }

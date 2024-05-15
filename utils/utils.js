@@ -4,7 +4,7 @@ import dbClient from './db';
 class Utils {
   static parseDoc(files) {
     return files.map((doc) => {
-      const { _id, localpath, ...rest } = doc;
+      const { _id, localPath, ...rest } = doc;
       return { id: _id, ...rest };
     });
   }
@@ -28,7 +28,7 @@ class Utils {
     return doc.toArray();
   }
 
-  static async getFilesWithUserId(req) {
+  static async getFilesWithId(req) {
     const fileId = req.params.id;
 
     const files = await dbClient.client.db().collection('files');
@@ -36,6 +36,12 @@ class Utils {
     const doc = await files.find({ _id: ObjectId(fileId) });
 
     return doc.toArray();
+  }
+
+  static async getFileCollection() {
+    const files = await dbClient.client.db().collection('files');
+
+    return files;
   }
 }
 
