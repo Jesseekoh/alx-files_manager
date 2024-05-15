@@ -18,4 +18,8 @@ router.get('/users/me', UsersController.getMe);
 
 // upload files
 router.post('/files', FilesController.postUpload);
+
+// Get and list file
+router.get('/files/:id', FilesController.getShow);
+router.get('/files', FilesController.getIndex);
 export default router;

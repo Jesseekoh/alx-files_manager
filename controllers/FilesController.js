@@ -7,6 +7,7 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import { join } from 'path';
 import { getUserFromXToken } from '../utils/auth';
+import Utils from '../utils/utils';
 import dbClient from '../utils/db';
 
 const ROOT_FOLDER_ID = 0;
@@ -97,5 +98,37 @@ export default class FilesController {
         : parentId,
     });
     return null;
+  }
+
+  static async getIndex(req, res) {
+    const user = await getUserFromXToken(req);
+
+    if (!user) {
+      return res.status(401).send('Unauthorized');
+    }
+
+    const files = await Utils.getDocWithPage(req);
+
+    const data = Utils.parseDoc(files);
+
+    return res.send(data);
+  }
+
+  static async getShow(req, res) {
+    const user = await getUserFromXToken(req);
+
+    if (!user) {
+      res.status(401).send('Unauthorized');
+    }
+
+    const files = await Utils.getFilesWithUserId(req);
+
+    if (files.length === 0) {
+      return res.status(404).send('Not found');
+    }
+
+    const data = Utils.parseDoc(files);
+
+    return res.send(data);
   }
 }
