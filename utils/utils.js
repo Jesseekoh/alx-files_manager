@@ -1,5 +1,11 @@
 import { ObjectId } from 'mongodb';
+import { promisify } from 'util';
 import dbClient from './db';
+
+const mime = require('mime-types');
+const fs = require('fs');
+
+const readFileAsync = promisify(fs.readFile);
 
 class Utils {
   static parseDoc(files) {
@@ -42,6 +48,16 @@ class Utils {
     const files = await dbClient.client.db().collection('files');
 
     return files;
+  }
+
+  static async readFile(path, fileName) {
+    const mimeType = mime.lookup(fileName);
+
+    const encode = mime.charset(mimeType);
+
+    const fileContent = await readFileAsync(path, encode);
+
+    return fileContent;
   }
 }
 
