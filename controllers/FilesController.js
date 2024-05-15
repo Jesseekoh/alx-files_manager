@@ -98,4 +98,71 @@ export default class FilesController {
     });
     return null;
   }
+
+  static async getShow(req, res) {
+    const user = await getUserFromXToken(req);
+    if (!user) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return null;
+    }
+
+    const userId = user._id.toString();
+    const fileId = req.params.id;
+    const userDocument = await (await dbClient.client.db().collection('files').findOne({ userId: new mongoDBCore.BSON.ObjectId(userId), _id: new mongoDBCore.BSON.ObjectId(fileId) }));
+
+    if (!userDocument) {
+      res.status(404).json({ error: 'Not found' });
+    } else {
+      const { _id: id, ...rest } = userDocument;
+
+      res.status(200).json({ id, ...rest });
+    }
+
+    return null;
+  }
+
+  /**
+   * gets files based on user and provided parentIndex
+   */
+  static async getIndex(req, res) {
+    const user = await getUserFromXToken(req);
+    if (!user) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return null;
+    }
+
+    const parentId = req.query.parentId || ROOT_FOLDER_ID.toString();
+    const page = /\d+/.test((req.query.page || '').toString())
+      ? Number.parseInt(req.query.page, 10)
+      : 0;
+    const filesFilter = {
+      userId: user._id,
+      parentId: parentId === ROOT_FOLDER_ID.toString()
+        ? parentId
+        : new mongoDBCore.BSON.ObjectId(parentId),
+    };
+
+    const files = await (await (await dbClient.filesCollection())
+      .aggregate([
+        { $match: filesFilter },
+        { $sort: { _id: -1 } },
+        { $skip: page * 20 },
+        { $limit: 20 },
+        {
+          $project: {
+            _id: 0,
+            id: '$_id',
+            userId: '$userId',
+            name: '$name',
+            type: '$type',
+            isPublic: '$isPublic',
+            parentId: {
+              $cond: { if: { $eq: ['$parentId', '0'] }, then: 0, else: '$parentId' },
+            },
+          },
+        },
+      ])).toArray();
+    res.status(200).json(files);
+    return null;
+  }
 }

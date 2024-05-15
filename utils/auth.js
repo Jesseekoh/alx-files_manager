@@ -17,7 +17,6 @@ export const getUserFromAuthHeader = async (req) => {
 
   const user = await (dbClient.client.db().collection('users').findOne({ email }));
 
-
   if (!user || sha1(password) !== user.password) {
     return null;
   }
