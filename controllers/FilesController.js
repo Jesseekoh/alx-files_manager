@@ -105,7 +105,7 @@ export default class FilesController {
     const user = await getUserFromXToken(req);
 
     if (!user) {
-      return res.status(401).send({error:'Unauthorized'});
+      return res.status(401).send({ error: 'Unauthorized' });
     }
 
     const files = await Utils.getDocWithPage(req);
@@ -119,18 +119,18 @@ export default class FilesController {
     const user = await getUserFromXToken(req);
 
     if (!user) {
-      res.status(401).send({error:'Unauthorized'});
+      res.status(401).send({ error: 'Unauthorized' });
     }
 
     const files = await Utils.getFilesWithId(req);
 
     if (files.length === 0) {
-      return res.status(404).send({error:'Not found'});
+      return res.status(404).send({ error: 'Not found' });
     }
 
     const data = Utils.parseDoc(files);
 
-    return res.send(data);
+    return res.send(data[0]);
   }
 
   static async putPublish(req, res) {
@@ -138,7 +138,7 @@ export default class FilesController {
     const { id } = req.params;
 
     if (!user) {
-      return res.status(401).send({error:'Unauthorized'});
+      return res.status(401).send({ error: 'Unauthorized' });
     }
 
     const files = await Utils.getFileCollection();
@@ -146,7 +146,7 @@ export default class FilesController {
     const update = await files.updateOne({ _id: ObjectId(id) }, { $set: { isPublic: true } });
 
     if (update.modifiedCount <= 0) {
-      return res.status(404).send({error:'Not found'});
+      return res.status(404).send({ error: 'Not found' });
     }
 
     const doc = await Utils.getFilesWithId(req);
@@ -161,7 +161,7 @@ export default class FilesController {
     const { id } = req.params;
 
     if (!user) {
-      return res.status(401).send({error:'Unauthorized'});
+      return res.status(401).send({ error: 'Unauthorized' });
     }
 
     const files = await Utils.getFileCollection();
@@ -169,7 +169,7 @@ export default class FilesController {
     const update = await files.updateOne({ _id: ObjectId(id) }, { $set: { isPublic: false } });
 
     if (update.modifiedCount <= 0) {
-      return res.status(404).send({error:'Not found'});
+      return res.status(404).send({ error: 'Not found' });
     }
 
     const doc = await Utils.getFilesWithId(req);
