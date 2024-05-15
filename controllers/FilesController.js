@@ -11,6 +11,8 @@ import { getUserFromXToken } from '../utils/auth';
 import Utils from '../utils/utils';
 import dbClient from '../utils/db';
 
+const mime = require('mime-types');
+
 const ROOT_FOLDER_ID = 0;
 const DEFAULT_ROOT_FOLDER = 'files_manager';
 const VALID_FILE_TYPES = {
@@ -143,17 +145,17 @@ export default class FilesController {
 
     const files = await Utils.getFileCollection();
 
-    const update = await files.updateOne({ _id: ObjectId(id) }, { $set: { isPublic: true } });
-
-    if (update.modifiedCount <= 0) {
-      return res.status(404).send({ error: 'Not found' });
-    }
+    await files.updateOne({ _id: ObjectId(id) }, { $set: { isPublic: true } });
 
     const doc = await Utils.getFilesWithId(req);
 
+    if (doc.length === 0) {
+      return res.status(404).send({ error: 'Not found' });
+    }
+
     const data = Utils.parseDoc(doc);
 
-    return res.send(data);
+    return res.send(data[0]);
   }
 
   static async putUnpublish(req, res) {
@@ -166,15 +168,41 @@ export default class FilesController {
 
     const files = await Utils.getFileCollection();
 
-    const update = await files.updateOne({ _id: ObjectId(id) }, { $set: { isPublic: false } });
-
-    if (update.modifiedCount <= 0) {
-      return res.status(404).send({ error: 'Not found' });
-    }
+    await files.updateOne({ _id: ObjectId(id) }, { $set: { isPublic: false } });
 
     const doc = await Utils.getFilesWithId(req);
 
+    if (doc.length === 0) {
+      return res.status(404).send({ error: 'Not found' });
+    }
+
     const data = Utils.parseDoc(doc);
+
+    return res.send(data[0]);
+  }
+
+  static async getFile(req, res) {
+    const user = await getUserFromXToken(req);
+
+    const doc = await Utils.getFilesWithId(req);
+
+    if (doc.length === 0) {
+      return res.status(404).send({ error: 'Not found' });
+    }
+
+    if (!user && !doc[0].isPublic) {
+      return res.status(404).send({ error: 'Not found' });
+    }
+
+    if (doc.type === 'folder') {
+      return res.status(400).send({ error: 'A folder doesn\'t have content' });
+    }
+
+    const data = await Utils.readFile(doc[0].localPath, doc[0].name);
+
+    const mimeType = mime.lookup(doc[0].name);
+
+    res.setHeader('Content-Type', mimeType);
 
     return res.send(data);
   }
