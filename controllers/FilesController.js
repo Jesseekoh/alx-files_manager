@@ -108,14 +108,21 @@ export default class FilesController {
 
     const userId = user._id.toString();
     const fileId = req.params.id;
-    const userDocument = await (await dbClient.client.db().collection('files').findOne({ userId: new mongoDBCore.BSON.ObjectId(userId), _id: new mongoDBCore.BSON.ObjectId(fileId) }));
+    const file = await dbClient.client.db().collection('files').findOne({ userId: new mongoDBCore.BSON.ObjectId(userId), _id: new mongoDBCore.BSON.ObjectId(fileId) });
 
-    if (!userDocument) {
+    if (!file) {
       res.status(404).json({ error: 'Not found' });
     } else {
-      const { _id: id, ...rest } = userDocument;
-
-      res.status(200).json({ id, ...rest });
+      res.status(200).json({
+        id: fileId,
+        userId,
+        name: file.name,
+        type: file.type,
+        isPublic: file.isPublic,
+        parentId: file.parentId === ROOT_FOLDER_ID.toString()
+          ? 0
+          : file.parentId.toString(),
+      });
     }
 
     return null;
