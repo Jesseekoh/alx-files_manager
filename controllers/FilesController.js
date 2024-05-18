@@ -80,11 +80,12 @@ export default class FilesController {
     const baseDir = `${process.env.FOLDER_PATH || ''}`.trim().length > 0
       ? process.env.FOLDER_PATH.trim()
       : join(tmpdir(), DEFAULT_ROOT_FOLDER);
-
     await mkDirAsync(baseDir, { recursive: true });
     if (type !== VALID_FILE_TYPES.folder) {
       const localPath = join(baseDir, uuidv4());
+
       await writeFileAsync(localPath, Buffer.from(data, 'base64'));
+
       newFile.localPath = localPath;
     }
 
@@ -100,6 +101,11 @@ export default class FilesController {
         ? 0
         : parentId,
     });
+
+    if (type === 'image') {
+      Utils.createJob({ userId, fileId });
+    }
+
     return null;
   }
 
@@ -121,7 +127,7 @@ export default class FilesController {
     const user = await getUserFromXToken(req);
 
     if (!user) {
-      res.status(401).send({ error: 'Unauthorized' });
+      return res.status(401).send({ error: 'Unauthorized' });
     }
 
     const files = await Utils.getFilesWithId(req);
@@ -198,12 +204,16 @@ export default class FilesController {
       return res.status(400).send({ error: 'A folder doesn\'t have content' });
     }
 
-    const data = await Utils.readFile(doc[0].localPath, doc[0].name);
+    const data = await Utils.readFile(doc[0].localPath, req);
+
+    if (data.error) {
+      return res.status(404).send({ error: 'Not found' });
+    }
 
     const mimeType = mime.lookup(doc[0].name);
 
     res.setHeader('Content-Type', mimeType);
 
-    return res.send(data);
+    return res.send(data.data);
   }
 }
